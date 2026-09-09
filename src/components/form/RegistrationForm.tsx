@@ -97,18 +97,17 @@ export function RegistrationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-8">
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
       <div>
-        <label className="mb-3 block text-sm font-medium text-navy">
+        <label className="mb-1.5 block text-sm font-medium text-navy">
           Type d&apos;inscription <span className="text-fuchsia">*</span>
         </label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2">
           {TYPE_INSCRIPTION_OPTIONS.map((option) => (
             <TypeCard
               key={option.value}
               value={option.value}
               label={option.label}
-              description={option.description}
               icon={option.icon}
               selected={values.type_inscription === option.value}
               onSelect={handleTypeSelect}
@@ -116,13 +115,13 @@ export function RegistrationForm() {
           ))}
         </div>
         {touched.type_inscription && errors.type_inscription && (
-          <p className="mt-2 text-sm font-medium text-rose-600" role="alert">
+          <p className="mt-1.5 text-sm font-medium text-rose-600" role="alert">
             {errors.type_inscription}
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField
           label="Nom complet"
           name="nom_complet"

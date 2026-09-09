@@ -32,14 +32,20 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-navy px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="text-center text-xl font-bold text-navy">Sérénité 2026 — CRM</h1>
-        <p className="mt-1 text-center text-sm text-slate-500">Connexion à l&apos;espace admin</p>
+    <div className="flex min-h-screen items-center justify-center bg-app-bg px-4 text-app-text">
+      <div className="w-full max-w-sm rounded-2xl border border-app-border bg-app-surface p-8 shadow-xl">
+        <div className="mb-1 flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-fuchsia text-sm font-bold text-white">
+            S
+          </span>
+          <span className="text-lg font-bold">Sérénité 2026</span>
+        </div>
+        <h1 className="mt-4 text-xl font-bold">Bon retour 👋</h1>
+        <p className="mt-1 text-sm text-app-text-muted">Connectez-vous à votre espace commercial.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-navy">
+            <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase text-app-text-muted">
               Email
             </label>
             <input
@@ -49,11 +55,11 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-navy outline-none focus:border-fuchsia focus:ring-4 focus:ring-fuchsia/15"
+              className="w-full rounded-xl border border-app-border bg-app-surface-2 px-4 py-2.5 text-app-text outline-none focus:border-fuchsia focus:ring-4 focus:ring-fuchsia/15"
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-navy">
+            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase text-app-text-muted">
               Mot de passe
             </label>
             <input
@@ -63,12 +69,12 @@ function LoginForm() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-navy outline-none focus:border-fuchsia focus:ring-4 focus:ring-fuchsia/15"
+              className="w-full rounded-xl border border-app-border bg-app-surface-2 px-4 py-2.5 text-app-text outline-none focus:border-fuchsia focus:ring-4 focus:ring-fuchsia/15"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700" role="alert">
+            <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-500" role="alert">
               {error}
             </p>
           )}

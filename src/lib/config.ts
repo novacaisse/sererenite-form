@@ -70,13 +70,47 @@ export const THANK_YOU_CONFIG: Record<
   },
 };
 
-export const PIPELINE_STATUSES: { value: StatutPipeline; label: string; color: string }[] = [
-  { value: "nouveau", label: "Nouveau", color: "bg-slate-200 text-slate-700" },
-  { value: "contacte", label: "Contacté", color: "bg-sky-100 text-sky-700" },
-  { value: "rdv_programme", label: "RDV programmé", color: "bg-amber-100 text-amber-700" },
-  { value: "en_negociation", label: "En négociation", color: "bg-violet-100 text-violet-700" },
-  { value: "converti", label: "Converti", color: "bg-emerald-100 text-emerald-700" },
-  { value: "perdu", label: "Perdu", color: "bg-rose-100 text-rose-700" },
+/**
+ * The pipeline board's columns, in display order. `urgent_a_contacter` is
+ * never set manually — a scheduled job (see the `escalate-uncontacted-leads`
+ * pg_cron job) flips a lead there automatically 3h after registration if
+ * nobody has moved it out of "nouveau" yet.
+ */
+export const PIPELINE_STATUSES: {
+  value: StatutPipeline;
+  label: string;
+  color: string;
+  dotColor: string;
+}[] = [
+  { value: "nouveau", label: "Nouveau", color: "bg-slate-200 text-slate-700", dotColor: "bg-slate-400" },
+  {
+    value: "urgent_a_contacter",
+    label: "Urgent à contacter",
+    color: "bg-rose-100 text-rose-700",
+    dotColor: "bg-rose-500",
+  },
+  { value: "contacte", label: "Contacté", color: "bg-sky-100 text-sky-700", dotColor: "bg-sky-500" },
+  {
+    value: "indisponible",
+    label: "Indisponible",
+    color: "bg-slate-200 text-slate-600",
+    dotColor: "bg-slate-400",
+  },
+  { value: "relance", label: "Relance", color: "bg-amber-100 text-amber-700", dotColor: "bg-amber-500" },
+  {
+    value: "dossier_en_cours",
+    label: "Dossier en cours",
+    color: "bg-violet-100 text-violet-700",
+    dotColor: "bg-violet-500",
+  },
+  {
+    value: "rdv_programme",
+    label: "RDV programmé",
+    color: "bg-indigo-100 text-indigo-700",
+    dotColor: "bg-indigo-500",
+  },
+  { value: "converti", label: "Converti", color: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
+  { value: "perdu", label: "Perdu", color: "bg-rose-50 text-rose-400", dotColor: "bg-rose-300" },
 ];
 
 export const INTERACTION_TYPES: { value: string; label: string }[] = [

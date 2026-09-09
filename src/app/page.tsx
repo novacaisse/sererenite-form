@@ -1,39 +1,21 @@
-import Image from "next/image";
 import { RegistrationForm } from "@/components/form/RegistrationForm";
 import { EVENT } from "@/lib/config";
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col">
-      <header className="bg-navy px-4 py-10 text-white sm:py-14">
+    <main className="flex min-h-screen flex-col bg-slate-50">
+      <header className="bg-navy px-4 py-4 text-white">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-5 flex justify-center">
-            <Image
-              src="/logo-serenite.png"
-              alt="Sérénité 2026"
-              width={180}
-              height={64}
-              priority
-              className="h-14 w-auto object-contain"
-            />
-          </div>
-          <h1 className="text-balance text-2xl font-bold sm:text-3xl">{EVENT.name}</h1>
-          <p className="mt-3 text-sm text-white/80 sm:text-base">
+          <h1 className="text-balance text-base font-bold sm:text-lg">{EVENT.name}</h1>
+          <p className="mt-0.5 text-xs text-white/70 sm:text-sm">
             {EVENT.dates} — {EVENT.venue}, {EVENT.city}
           </p>
         </div>
       </header>
 
-      <section className="flex-1 bg-slate-50 px-4 py-8 sm:py-12">
+      <section className="flex-1 px-4 py-4">
         <div className="mx-auto max-w-2xl">
-          <div className="mb-6 text-center">
-            <h2 className="text-xl font-bold text-navy sm:text-2xl">Inscrivez-vous</h2>
-            <p className="mt-2 text-sm text-slate-500 sm:text-base">
-              Réservez votre place en moins de deux minutes.
-            </p>
-          </div>
-
-          <div className="relative rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <RegistrationForm />
           </div>
         </div>

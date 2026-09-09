@@ -38,6 +38,7 @@ export default async function AdminDashboardPage() {
     { count: converted },
     { count: rdvThisWeek },
     { count: overdue },
+    { count: urgent },
   ] = await Promise.all([
     supabase.from("leads").select("*", { count: "exact", head: true }),
     supabase
@@ -70,6 +71,10 @@ export default async function AdminDashboardPage() {
       .lt("prochaine_action_date", new Date().toISOString())
       .not("prochaine_action_date", "is", null)
       .not("statut_pipeline", "in", "(converti,perdu)"),
+    supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("statut_pipeline", "urgent_a_contacter"),
   ]);
 
   const totalCount = total ?? 0;
@@ -84,27 +89,31 @@ export default async function AdminDashboardPage() {
     { label: "Nouveaux aujourd'hui", value: newToday ?? 0, sub: `${newThisWeek ?? 0} cette semaine` },
     { label: "Taux de conversion", value: `${conversionRate}%`, sub: `${converted ?? 0} convertis` },
     { label: "RDV cette semaine", value: rdvThisWeek ?? 0, sub: "Rendez-vous programmés" },
+    {
+      label: "Urgent à contacter",
+      value: urgent ?? 0,
+      sub: "Non contactés depuis 3h",
+      alert: (urgent ?? 0) > 0,
+    },
     { label: "Relances en retard", value: overdue ?? 0, sub: "Action requise", alert: (overdue ?? 0) > 0 },
   ];
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-navy">Dashboard</h1>
-      <p className="mt-1 text-sm text-slate-500">Vue d&apos;ensemble de la campagne Sérénité 2026.</p>
+      <h1 className="text-xl font-bold">Tableau de bord</h1>
+      <p className="mt-1 text-sm text-app-text-muted">Vue d&apos;ensemble de la campagne Sérénité 2026.</p>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}
-            className={`rounded-2xl border bg-white p-5 shadow-sm ${
-              kpi.alert ? "border-rose-300 bg-rose-50" : "border-slate-200"
+            className={`rounded-2xl border p-4 ${
+              kpi.alert ? "border-rose-500/30 bg-rose-500/10" : "border-app-border bg-app-surface"
             }`}
           >
-            <p className="text-sm font-medium text-slate-500">{kpi.label}</p>
-            <p className={`mt-1 text-3xl font-bold ${kpi.alert ? "text-rose-600" : "text-navy"}`}>
-              {kpi.value}
-            </p>
-            <p className="mt-1 text-xs text-slate-400">{kpi.sub}</p>
+            <p className="text-xs font-medium uppercase text-app-text-muted">{kpi.label}</p>
+            <p className={`mt-1 text-2xl font-bold ${kpi.alert ? "text-rose-500" : ""}`}>{kpi.value}</p>
+            <p className="mt-1 text-xs text-app-text-muted">{kpi.sub}</p>
           </div>
         ))}
       </div>

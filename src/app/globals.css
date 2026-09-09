@@ -7,6 +7,24 @@
   --color-navy-light: #263a63;
   --color-fuchsia: #e91e8c;
   --color-fuchsia-dark: #c4177a;
+
+  /* Admin app surfaces — light mode */
+  --app-bg: #f1f4f9;
+  --app-surface: #ffffff;
+  --app-surface-2: #f8fafc;
+  --app-border: #e2e8f0;
+  --app-text: #0f1b33;
+  --app-text-muted: #64748b;
+}
+
+[data-theme="dark"] {
+  /* Admin app surfaces — dark mode, navy-black with the fuchsia accent */
+  --app-bg: #0a1120;
+  --app-surface: #101a2e;
+  --app-surface-2: #16223a;
+  --app-border: #223252;
+  --app-text: #f1f5fb;
+  --app-text-muted: #93a1bd;
 }
 
 @theme inline {
@@ -16,6 +34,12 @@
   --color-navy-light: var(--color-navy-light);
   --color-fuchsia: var(--color-fuchsia);
   --color-fuchsia-dark: var(--color-fuchsia-dark);
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-surface-2: var(--app-surface-2);
+  --color-app-border: var(--app-border);
+  --color-app-text: var(--app-text);
+  --color-app-text-muted: var(--app-text-muted);
   --font-sans: var(--font-inter);
 }
 
