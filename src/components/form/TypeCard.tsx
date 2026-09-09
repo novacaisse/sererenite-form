@@ -4,7 +4,7 @@ import type { TypeInscription } from "@/types/database";
 
 const ICONS: Record<string, React.ReactNode> = {
   building: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" className="h-6 w-6">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -13,7 +13,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   handshake: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" className="h-6 w-6">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -22,7 +22,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   ticket: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.75} stroke="currentColor" className="h-6 w-6">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -35,33 +35,25 @@ const ICONS: Record<string, React.ReactNode> = {
 interface TypeCardProps {
   value: TypeInscription;
   label: string;
-  description: string;
   icon: "building" | "handshake" | "ticket";
   selected: boolean;
   onSelect: (value: TypeInscription) => void;
 }
 
-export function TypeCard({ value, label, description, icon, selected, onSelect }: TypeCardProps) {
+export function TypeCard({ value, label, icon, selected, onSelect }: TypeCardProps) {
   return (
     <button
       type="button"
       onClick={() => onSelect(value)}
       aria-pressed={selected}
-      className={`group flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-all duration-150 sm:p-5 ${
+      className={`flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2.5 text-center text-xs font-semibold transition-colors sm:text-sm ${
         selected
-          ? "border-fuchsia bg-fuchsia/5 shadow-[0_0_0_4px_rgba(233,30,140,0.12)]"
-          : "border-slate-200 bg-white hover:border-navy/30 hover:bg-slate-50"
+          ? "border-fuchsia bg-fuchsia text-white"
+          : "border-slate-200 bg-white text-navy hover:border-navy/30 hover:bg-slate-50"
       }`}
     >
-      <span
-        className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
-          selected ? "bg-fuchsia text-white" : "bg-navy/5 text-navy group-hover:bg-navy/10"
-        }`}
-      >
-        {ICONS[icon]}
-      </span>
-      <span className="text-base font-semibold text-navy">{label}</span>
-      <span className="text-sm leading-snug text-slate-500">{description}</span>
+      {ICONS[icon]}
+      <span className="truncate">{label}</span>
     </button>
   );
 }

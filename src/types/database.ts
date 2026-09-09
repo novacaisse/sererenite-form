@@ -2,9 +2,12 @@ export type TypeInscription = "exposant" | "partenaire_officiel" | "visiteur";
 
 export type StatutPipeline =
   | "nouveau"
+  | "urgent_a_contacter"
   | "contacte"
+  | "indisponible"
+  | "relance"
+  | "dossier_en_cours"
   | "rdv_programme"
-  | "en_negociation"
   | "converti"
   | "perdu";
 
