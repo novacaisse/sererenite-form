@@ -72,12 +72,13 @@ export function RegistrationForm() {
     }
 
     setSubmitting(true);
+    const eventId = crypto.randomUUID();
 
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, event_id: eventId }),
       });
 
       const data = await res.json();
@@ -88,8 +89,14 @@ export function RegistrationForm() {
         return;
       }
 
-      trackLeadEvent(values.type_inscription);
-      router.push(`/merci?type=${values.type_inscription}&prenom=${encodeURIComponent(values.nom_complet.trim().split(" ")[0] || "")}`);
+      const [firstName, ...rest] = values.nom_complet.trim().split(" ");
+      trackLeadEvent(values.type_inscription, eventId, {
+        email: values.email.trim(),
+        phone: values.telephone.trim(),
+        firstName,
+        lastName: rest.join(" ") || undefined,
+      });
+      router.push(`/merci?type=${values.type_inscription}&prenom=${encodeURIComponent(firstName || "")}`);
     } catch {
       setSubmitError("Impossible de contacter le serveur. Vérifiez votre connexion et réessayez.");
       setSubmitting(false);

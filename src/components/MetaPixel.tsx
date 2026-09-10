@@ -38,11 +38,48 @@ declare global {
   }
 }
 
-export function trackLeadEvent(contentName: string) {
-  if (typeof window !== "undefined" && window.fbq) {
-    window.fbq("track", "Lead", {
-      content_name: contentName,
-      content_category: "inscription_serenite_2026",
+interface AdvancedMatchingData {
+  email: string;
+  phone: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+/**
+ * Fires the browser-side Lead event. `eventId` must match the id sent to
+ * POST /api/leads so Meta dedupes this against the server-side Conversions
+ * API event instead of double-counting the same lead.
+ *
+ * Re-calling fbq('init', ...) with em/ph/fn/ln right before the track call
+ * is Meta's documented pattern for Advanced Matching once user data becomes
+ * known mid-session — the pixel hashes these client-side before sending,
+ * nothing plaintext leaves the browser. This materially improves how many
+ * leads Meta can match back to a Facebook/Instagram account, which is what
+ * the ad campaign's optimization and audience-building actually rely on.
+ */
+export function trackLeadEvent(
+  contentName: string,
+  eventId: string,
+  advancedMatching?: AdvancedMatchingData,
+) {
+  if (typeof window === "undefined" || !window.fbq) return;
+
+  if (advancedMatching) {
+    window.fbq("init", META_PIXEL_ID, {
+      em: advancedMatching.email,
+      ph: advancedMatching.phone,
+      fn: advancedMatching.firstName,
+      ln: advancedMatching.lastName,
     });
   }
+
+  window.fbq(
+    "track",
+    "Lead",
+    {
+      content_name: contentName,
+      content_category: "inscription_serenite_2026",
+    },
+    { eventID: eventId },
+  );
 }
