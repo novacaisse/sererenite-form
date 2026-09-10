@@ -4,7 +4,7 @@ import type { TypeInscription } from "@/types/database";
 
 const ICONS: Record<string, React.ReactNode> = {
   building: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -13,7 +13,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   handshake: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -22,7 +22,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </svg>
   ),
   ticket: (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-4 w-4 shrink-0">
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5 shrink-0">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -46,14 +46,14 @@ export function TypeCard({ value, label, icon, selected, onSelect }: TypeCardPro
       type="button"
       onClick={() => onSelect(value)}
       aria-pressed={selected}
-      className={`flex items-center justify-center gap-1.5 rounded-lg border px-2 py-2.5 text-center text-xs font-semibold transition-colors sm:text-sm ${
+      className={`flex min-h-[68px] w-full flex-col items-center justify-center gap-1 rounded-lg border-2 px-1 py-2 text-center transition-colors ${
         selected
           ? "border-fuchsia bg-fuchsia text-white"
-          : "border-slate-200 bg-white text-navy hover:border-navy/30 hover:bg-slate-50"
+          : "border-slate-300 bg-white text-navy hover:border-navy/40 hover:bg-slate-50"
       }`}
     >
       {ICONS[icon]}
-      <span className="truncate">{label}</span>
+      <span className="text-[11px] font-semibold leading-tight break-words sm:text-xs">{label}</span>
     </button>
   );
 }
