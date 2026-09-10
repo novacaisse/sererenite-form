@@ -40,6 +40,16 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/admin/contacts",
+    label: "Contacts",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path strokeLinecap="round" d="M7 9h10M7 13h10M7 17h6" />
+      </svg>
+    ),
+  },
 ];
 
 export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
@@ -64,8 +74,8 @@ export function AdminShell({ email, children }: { email: string; children: React
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-app-bg text-app-text">
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-app-border bg-app-surface px-4 py-3">
+    <div className="flex min-h-screen flex-col bg-app-bg text-app-text print:bg-white print:text-black">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-app-border bg-app-surface px-4 py-3 print:hidden">
         <div>
           <p className="text-sm font-bold">Sérénité 2026</p>
           <p className="text-xs text-app-text-muted">Espace commercial</p>
@@ -82,9 +92,9 @@ export function AdminShell({ email, children }: { email: string; children: React
         </div>
       </header>
 
-      <main className="flex-1 px-4 pb-24 pt-4">{children}</main>
+      <main className="flex-1 px-4 pb-24 pt-4 print:p-0">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-app-border bg-app-surface pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-app-border bg-app-surface pb-[env(safe-area-inset-bottom)] print:hidden">
         <div className="mx-auto flex max-w-lg items-stretch justify-around">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href;
