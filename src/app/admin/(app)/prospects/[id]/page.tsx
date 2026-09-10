@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { INTERACTION_TYPES, PIPELINE_STATUSES, TYPE_INSCRIPTION_OPTIONS } from "@/lib/config";
-import type { Interaction, Lead, StatutPipeline, TypeInteraction } from "@/types/database";
+import type { Interaction, Lead, StatutPipeline, TypeInscription, TypeInteraction } from "@/types/database";
 
 function toDatetimeLocal(value: string | null): string {
   if (!value) return "";
@@ -19,12 +19,27 @@ function waLink(phone: string): string {
   return `https://wa.me/${digits}`;
 }
 
+interface InfoFormValues {
+  nom_complet: string;
+  entreprise: string;
+  poste: string;
+  telephone: string;
+  email: string;
+  type_inscription: TypeInscription;
+}
+
 export default function ProspectDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [lead, setLead] = useState<Lead | null>(null);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [infoValues, setInfoValues] = useState<InfoFormValues | null>(null);
+  const [savingInfo, setSavingInfo] = useState(false);
 
   const [prochaineAction, setProchaineAction] = useState("");
   const [prochaineActionDate, setProchaineActionDate] = useState("");
@@ -57,6 +72,14 @@ export default function ProspectDetailPage() {
       setProchaineActionDate(toDatetimeLocal(leadData.prochaine_action_date));
       setAssigneA(leadData.assigne_a ?? "");
       setNotesGenerales(leadData.notes_generales ?? "");
+      setInfoValues({
+        nom_complet: leadData.nom_complet,
+        entreprise: leadData.entreprise,
+        poste: leadData.poste ?? "",
+        telephone: leadData.telephone,
+        email: leadData.email,
+        type_inscription: leadData.type_inscription,
+      });
     }
     setInteractions(interactionsData ?? []);
     setLoading(false);
@@ -82,6 +105,28 @@ export default function ProspectDetailPage() {
     load();
   }
 
+  async function saveInfo() {
+    if (!lead || !infoValues) return;
+    setSavingInfo(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        nom_complet: infoValues.nom_complet.trim(),
+        entreprise: infoValues.entreprise.trim(),
+        poste: infoValues.poste.trim() || null,
+        telephone: infoValues.telephone.trim(),
+        email: infoValues.email.trim().toLowerCase(),
+        type_inscription: infoValues.type_inscription,
+      })
+      .eq("id", lead.id);
+    setSavingInfo(false);
+    if (!error) {
+      setEditingInfo(false);
+      load();
+    }
+  }
+
   async function saveDetails() {
     if (!lead) return;
     setSaving(true);
@@ -97,6 +142,24 @@ export default function ProspectDetailPage() {
       .eq("id", lead.id);
     setSaving(false);
     load();
+  }
+
+  async function deleteLead() {
+    if (!lead) return;
+    const confirmed = window.confirm(
+      `Supprimer définitivement ${lead.nom_complet} et tout son historique d'interactions ? Cette action est irréversible.`,
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("leads").delete().eq("id", lead.id);
+    if (error) {
+      setDeleting(false);
+      window.alert("La suppression a échoué. Merci de réessayer.");
+      return;
+    }
+    router.push("/admin/prospects");
   }
 
   async function addInteraction(e: React.FormEvent) {
@@ -124,7 +187,7 @@ export default function ProspectDetailPage() {
     return <p className="text-sm text-app-text-muted">Chargement...</p>;
   }
 
-  if (!lead) {
+  if (!lead || !infoValues) {
     return <p className="text-sm text-app-text-muted">Prospect introuvable.</p>;
   }
 
@@ -181,31 +244,128 @@ export default function ProspectDetailPage() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           <div className="rounded-2xl border border-app-border bg-app-surface p-5">
-            <h2 className="text-sm font-semibold">Informations</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between gap-2">
-                <dt className="text-app-text-muted">Type</dt>
-                <dd className="font-medium">
-                  {TYPE_INSCRIPTION_OPTIONS.find((t) => t.value === lead.type_inscription)?.label}
-                </dd>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Informations</h2>
+              {!editingInfo && (
+                <button
+                  onClick={() => setEditingInfo(true)}
+                  className="text-xs font-semibold text-fuchsia hover:underline"
+                >
+                  Modifier
+                </button>
+              )}
+            </div>
+
+            {!editingInfo ? (
+              <dl className="mt-3 space-y-2 text-sm">
+                <div className="flex justify-between gap-2">
+                  <dt className="text-app-text-muted">Type</dt>
+                  <dd className="font-medium">
+                    {TYPE_INSCRIPTION_OPTIONS.find((t) => t.value === lead.type_inscription)?.label}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-app-text-muted">Téléphone</dt>
+                  <dd className="font-medium">{lead.telephone}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-app-text-muted">Email</dt>
+                  <dd className="break-all font-medium">{lead.email}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-app-text-muted">Source</dt>
+                  <dd className="font-medium">{lead.source}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt className="text-app-text-muted">Inscrit le</dt>
+                  <dd className="font-medium">{new Date(lead.created_at).toLocaleString("fr-FR")}</dd>
+                </div>
+              </dl>
+            ) : (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Nom complet</label>
+                  <input
+                    value={infoValues.nom_complet}
+                    onChange={(e) => setInfoValues({ ...infoValues, nom_complet: e.target.value })}
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Entreprise</label>
+                  <input
+                    value={infoValues.entreprise}
+                    onChange={(e) => setInfoValues({ ...infoValues, entreprise: e.target.value })}
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Poste</label>
+                  <input
+                    value={infoValues.poste}
+                    onChange={(e) => setInfoValues({ ...infoValues, poste: e.target.value })}
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Type</label>
+                  <select
+                    value={infoValues.type_inscription}
+                    onChange={(e) =>
+                      setInfoValues({ ...infoValues, type_inscription: e.target.value as TypeInscription })
+                    }
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  >
+                    {TYPE_INSCRIPTION_OPTIONS.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Téléphone</label>
+                  <input
+                    value={infoValues.telephone}
+                    onChange={(e) => setInfoValues({ ...infoValues, telephone: e.target.value })}
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-app-text-muted">Email</label>
+                  <input
+                    value={infoValues.email}
+                    onChange={(e) => setInfoValues({ ...infoValues, email: e.target.value })}
+                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={saveInfo}
+                    disabled={savingInfo}
+                    className="flex-1 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light disabled:opacity-70"
+                  >
+                    {savingInfo ? "Enregistrement..." : "Enregistrer"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingInfo(false);
+                      setInfoValues({
+                        nom_complet: lead.nom_complet,
+                        entreprise: lead.entreprise,
+                        poste: lead.poste ?? "",
+                        telephone: lead.telephone,
+                        email: lead.email,
+                        type_inscription: lead.type_inscription,
+                      });
+                    }}
+                    className="rounded-lg border border-app-border px-4 py-2 text-sm font-semibold hover:opacity-80"
+                  >
+                    Annuler
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-app-text-muted">Téléphone</dt>
-                <dd className="font-medium">{lead.telephone}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-app-text-muted">Email</dt>
-                <dd className="break-all font-medium">{lead.email}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-app-text-muted">Source</dt>
-                <dd className="font-medium">{lead.source}</dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-app-text-muted">Inscrit le</dt>
-                <dd className="font-medium">{new Date(lead.created_at).toLocaleString("fr-FR")}</dd>
-              </div>
-            </dl>
+            )}
           </div>
 
           <div className="rounded-2xl border border-app-border bg-app-surface p-5">
@@ -257,6 +417,20 @@ export default function ProspectDetailPage() {
                 {saving ? "Enregistrement..." : "Enregistrer"}
               </button>
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-5">
+            <h2 className="text-sm font-semibold text-rose-500">Zone dangereuse</h2>
+            <p className="mt-1 text-xs text-app-text-muted">
+              Supprime définitivement ce prospect et tout son historique d&apos;interactions.
+            </p>
+            <button
+              onClick={deleteLead}
+              disabled={deleting}
+              className="mt-3 w-full rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-500/20 disabled:opacity-70"
+            >
+              {deleting ? "Suppression..." : "Supprimer le prospect"}
+            </button>
           </div>
         </div>
 

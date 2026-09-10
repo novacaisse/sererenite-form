@@ -73,13 +73,21 @@ export function trackLeadEvent(
     });
   }
 
-  window.fbq(
-    "track",
-    "Lead",
-    {
-      content_name: contentName,
-      content_category: "inscription_serenite_2026",
-    },
-    { eventID: eventId },
-  );
+  const customData = {
+    content_name: contentName,
+    content_category: "inscription_serenite_2026",
+  };
+
+  // "Lead" is the standard event Meta Ads actually optimizes campaigns
+  // against — keep this as the primary conversion event.
+  window.fbq("track", "Lead", customData, { eventID: eventId });
+
+  // Every registration also fires as a plainly-named "Inscription" custom
+  // event, and exhibitors/official partners additionally as "Prospect" —
+  // so both show up under those exact names in Meta Events Manager
+  // alongside "Lead", instead of only ever being visible as "Lead".
+  window.fbq("trackCustom", "Inscription", customData, { eventID: `${eventId}-inscription` });
+  if (contentName === "exposant" || contentName === "partenaire_officiel") {
+    window.fbq("trackCustom", "Prospect", customData, { eventID: `${eventId}-prospect` });
+  }
 }
