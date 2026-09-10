@@ -90,6 +90,34 @@ Le schéma (tables `leads` et `interactions`, contraintes, index, RLS) est
 défini par la migration Supabase appliquée au projet — voir la section
 "Choix effectués" ci-dessous pour le détail des policies RLS.
 
+## Tracking Meta Pixel
+
+Deux couches, toutes deux pilotées par le même `event_id` pour que Meta
+dédoublonne au lieu de compter le lead deux fois :
+
+1. **Pixel navigateur** (toujours actif) — `PageView` sur chaque page,
+   `Lead` déclenché juste avant la redirection vers `/merci`, avec
+   Advanced Matching (email/téléphone transmis au pixel, qui les hashe
+   lui-même côté client avant tout envoi).
+2. **Conversions API côté serveur** (optionnelle) — `/api/leads` envoie le
+   même événement `Lead` directement à l'API Graph de Meta, avec email et
+   téléphone hashés en SHA-256. Ça garde le tracking fiable même quand un
+   bloqueur de pub ou l'iOS App Tracking Transparency empêche le pixel
+   navigateur de partir.
+
+Pour activer la couche serveur, renseigner dans les variables
+d'environnement (local et Vercel) :
+
+- `META_CONVERSIONS_API_ACCESS_TOKEN` — Meta Events Manager → sélectionner
+  le pixel `2452145495266477` → Paramètres → Conversions API → Générer un
+  token d'accès.
+- `META_TEST_EVENT_CODE` (optionnel, pour valider dans l'outil "Tester les
+  événements" de Meta avant de passer en prod — à retirer une fois validé).
+
+Sans ces variables, seul le pixel navigateur tourne (comportement actuel) —
+rien ne casse, la fonctionnalité s'active simplement dès qu'elles sont
+renseignées.
+
 ## Build & lint
 
 ```bash

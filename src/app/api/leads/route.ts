@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendMetaLeadEvent } from "@/lib/metaCapi";
 import { isRateLimited } from "@/lib/rateLimit";
 import { normalizePhone, validateLeadForm, type LeadFormValues } from "@/lib/validation";
+
+interface LeadRequestBody extends Partial<LeadFormValues> {
+  /** Client-generated id, shared with the browser-side fbq('track', 'Lead', ...) call for dedup. */
+  event_id?: string;
+}
 
 function getClientIp(request: NextRequest): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
@@ -19,7 +25,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: Partial<LeadFormValues>;
+  let body: LeadRequestBody;
   try {
     body = await request.json();
   } catch {
@@ -48,13 +54,15 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  const normalizedPhone = normalizePhone(values.telephone);
+  const normalizedEmail = values.email.trim().toLowerCase();
 
   const { error } = await supabase.from("leads").insert({
     nom_complet: values.nom_complet.trim(),
     entreprise: values.entreprise.trim(),
     poste: values.poste.trim(),
-    telephone: normalizePhone(values.telephone),
-    email: values.email.trim().toLowerCase(),
+    telephone: normalizedPhone,
+    email: normalizedEmail,
     type_inscription: values.type_inscription as "exposant" | "partenaire_officiel" | "visiteur",
   });
 
@@ -64,6 +72,22 @@ export async function POST(request: NextRequest) {
       { error: "Une erreur est survenue. Merci de réessayer." },
       { status: 500 },
     );
+  }
+
+  // Best-effort server-side mirror of the client pixel's Lead event (same
+  // event_id => Meta dedups them). Never blocks or fails the form response.
+  if (body.event_id) {
+    void sendMetaLeadEvent({
+      eventId: body.event_id,
+      email: normalizedEmail,
+      phoneDigits: normalizedPhone.replace(/[^\d]/g, ""),
+      contentName: values.type_inscription,
+      eventSourceUrl: request.headers.get("referer") ?? new URL(request.url).origin,
+      clientIp: ip,
+      userAgent: request.headers.get("user-agent") ?? "",
+      fbp: request.cookies.get("_fbp")?.value,
+      fbc: request.cookies.get("_fbc")?.value,
+    });
   }
 
   return NextResponse.json({ success: true });
