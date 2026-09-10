@@ -29,8 +29,8 @@ export function FormField({
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-navy">
-        {label}
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-navy">
+        {label} <span className="text-fuchsia">*</span>
       </label>
       <input
         id={id}
@@ -43,10 +43,10 @@ export function FormField({
         onBlur={onBlur}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`w-full rounded-xl border bg-white px-4 py-3 text-base text-navy shadow-sm outline-none transition-all duration-150 placeholder:text-slate-400 focus:ring-4 ${
+        className={`w-full rounded-xl border-2 bg-slate-50 px-4 py-3 text-base font-medium text-navy outline-none transition-all duration-150 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-4 ${
           error
             ? "border-rose-400 focus:border-rose-500 focus:ring-rose-100"
-            : "border-slate-200 focus:border-fuchsia focus:ring-fuchsia/15"
+            : "border-slate-300 focus:border-fuchsia focus:ring-fuchsia/15"
         }`}
       />
       {error && (
