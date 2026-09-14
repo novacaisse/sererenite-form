@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { INTERACTION_TYPES, PIPELINE_STATUSES, TYPE_INSCRIPTION_OPTIONS } from "@/lib/config";
+import {
+  INTERACTION_TYPES,
+  NON_QUALIFYING_ROLE,
+  PIPELINE_STATUSES,
+  QUALIFYING_ROLES,
+  TYPE_INSCRIPTION_OPTIONS,
+  isQualifyingRole,
+} from "@/lib/config";
 import type { Interaction, Lead, StatutPipeline, TypeInscription, TypeInteraction } from "@/types/database";
 
 function toDatetimeLocal(value: string | null): string {
@@ -204,6 +211,16 @@ export default function ProspectDetailPage() {
             {lead.poste ? `${lead.poste} · ` : ""}
             {lead.entreprise}
           </p>
+          {lead.type_inscription === "exposant" &&
+            (isQualifyingRole(lead.poste) ? (
+              <span className="mt-1 inline-block rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+                Décideur — habilité à réserver un stand
+              </span>
+            ) : (
+              <span className="mt-1 inline-block rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+                À qualifier — poste non confirmé décisionnaire
+              </span>
+            ))}
         </div>
         <select
           value={lead.statut_pipeline}
@@ -301,11 +318,27 @@ export default function ProspectDetailPage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-app-text-muted">Poste</label>
-                  <input
-                    value={infoValues.poste}
-                    onChange={(e) => setInfoValues({ ...infoValues, poste: e.target.value })}
-                    className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
-                  />
+                  {infoValues.type_inscription === "exposant" ? (
+                    <select
+                      value={infoValues.poste}
+                      onChange={(e) => setInfoValues({ ...infoValues, poste: e.target.value })}
+                      className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                    >
+                      <option value="">Sélectionnez un poste</option>
+                      {QUALIFYING_ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                      <option value={NON_QUALIFYING_ROLE}>Autre poste</option>
+                    </select>
+                  ) : (
+                    <input
+                      value={infoValues.poste}
+                      onChange={(e) => setInfoValues({ ...infoValues, poste: e.target.value })}
+                      className="w-full rounded-lg border border-app-border bg-app-surface-2 px-3 py-2 text-sm outline-none focus:border-fuchsia"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-app-text-muted">Type</label>

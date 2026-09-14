@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { PIPELINE_STATUSES, TYPE_INSCRIPTION_OPTIONS } from "@/lib/config";
+import { PIPELINE_STATUSES, TYPE_INSCRIPTION_OPTIONS, isQualifyingRole } from "@/lib/config";
 import type { Lead, StatutPipeline } from "@/types/database";
+
+const PROSPECT_TYPE_OPTIONS = TYPE_INSCRIPTION_OPTIONS.filter((t) => t.value !== "visiteur");
 
 function isOverdue(lead: Lead): boolean {
   if (!lead.prochaine_action_date) return false;
@@ -74,6 +76,7 @@ export default function ProspectsPage() {
     supabase
       .from("leads")
       .select("*")
+      .neq("type_inscription", "visiteur")
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         setLeads(data ?? []);
@@ -130,7 +133,10 @@ export default function ProspectsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold">Prospects</h1>
-          <p className="mt-1 text-sm text-app-text-muted">{filtered.length} résultat(s)</p>
+          <p className="mt-1 text-sm text-app-text-muted">
+            Exposants &amp; partenaires officiels — {filtered.length} résultat(s). Les visiteurs sont dans
+            leur propre onglet.
+          </p>
         </div>
         <button
           onClick={() => exportCsv(filtered)}
@@ -154,7 +160,7 @@ export default function ProspectsPage() {
           className="rounded-lg border border-app-border bg-app-surface px-3 py-2 text-sm outline-none focus:border-fuchsia"
         >
           <option value="all">Tous les types</option>
-          {TYPE_INSCRIPTION_OPTIONS.map((t) => (
+          {PROSPECT_TYPE_OPTIONS.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
             </option>
@@ -229,6 +235,16 @@ export default function ProspectsPage() {
                         <span className="rounded-full bg-app-border px-2 py-0.5 text-[11px] text-app-text-muted">
                           {TYPE_INSCRIPTION_OPTIONS.find((t) => t.value === lead.type_inscription)?.label}
                         </span>
+                        {lead.type_inscription === "exposant" &&
+                          (isQualifyingRole(lead.poste) ? (
+                            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+                              Décideur
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+                              À qualifier
+                            </span>
+                          ))}
                         {isOverdue(lead) && (
                           <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-500">
                             En retard

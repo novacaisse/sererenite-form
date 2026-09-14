@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { TYPE_INSCRIPTION_OPTIONS } from "@/lib/config";
+import {
+  EXPOSANT_QUALIFICATION_NOTE,
+  NON_QUALIFYING_ROLE,
+  QUALIFYING_ROLES,
+  TYPE_INSCRIPTION_OPTIONS,
+} from "@/lib/config";
 import type { TypeInscription } from "@/types/database";
 import {
   type FormErrors,
@@ -24,8 +29,15 @@ const INITIAL_VALUES: LeadFormValues = {
   site_web: "",
 };
 
+const POSTE_OPTIONS = [
+  { value: "", label: "Sélectionnez votre poste" },
+  ...QUALIFYING_ROLES.map((role) => ({ value: role, label: role })),
+  { value: NON_QUALIFYING_ROLE, label: "Autre poste" },
+];
+
 export function RegistrationForm() {
   const router = useRouter();
+  const [estEntreprise, setEstEntreprise] = useState<"" | "oui" | "non">("");
   const [values, setValues] = useState<LeadFormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof LeadFormValues, boolean>>>({});
@@ -40,14 +52,28 @@ export function RegistrationForm() {
     }
   }
 
-  function handleBlur(field: keyof LeadFormValues) {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    setErrors(validateLeadForm(values));
+  function handleEstEntreprise(next: "oui" | "non") {
+    if (next === estEntreprise) return;
+    setEstEntreprise(next);
+    if (next === "non") {
+      // Individuals only ever register as Visiteur — no company details needed.
+      setValues((prev) => ({ ...prev, type_inscription: "visiteur", entreprise: "", poste: "" }));
+    } else if (estEntreprise === "non") {
+      // Coming back from "non": don't keep the auto-picked Visiteur type, let
+      // them choose explicitly among the three company-linked options.
+      setValues((prev) => ({ ...prev, type_inscription: "" }));
+    }
+    setTouched((prev) => ({ ...prev, type_inscription: false }));
   }
 
   function handleTypeSelect(type: TypeInscription) {
     updateField("type_inscription", type);
     setTouched((prev) => ({ ...prev, type_inscription: true }));
+  }
+
+  function handleBlurField(field: keyof LeadFormValues) {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors(validateLeadForm(values));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -103,30 +129,145 @@ export function RegistrationForm() {
     }
   }
 
+  const showTypeError = touched.type_inscription && errors.type_inscription;
+
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      <div>
+      <div aria-invalid={Boolean(showTypeError && estEntreprise === "")}>
         <label className="mb-1.5 block text-sm font-medium text-navy">
-          Type d&apos;inscription <span className="text-fuchsia">*</span>
+          Vous inscrivez-vous au nom d&apos;une entreprise ? <span className="text-fuchsia">*</span>
         </label>
-        <div className="grid grid-cols-3 gap-2">
-          {TYPE_INSCRIPTION_OPTIONS.map((option) => (
-            <TypeCard
-              key={option.value}
-              value={option.value}
-              label={option.label}
-              icon={option.icon}
-              selected={values.type_inscription === option.value}
-              onSelect={handleTypeSelect}
-            />
-          ))}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => handleEstEntreprise("oui")}
+            aria-pressed={estEntreprise === "oui"}
+            className={`rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors ${
+              estEntreprise === "oui"
+                ? "border-fuchsia bg-fuchsia text-white"
+                : "border-slate-300 bg-white text-navy hover:border-navy/40 hover:bg-slate-50"
+            }`}
+          >
+            Oui, une entreprise
+          </button>
+          <button
+            type="button"
+            onClick={() => handleEstEntreprise("non")}
+            aria-pressed={estEntreprise === "non"}
+            className={`rounded-lg border-2 px-3 py-3 text-sm font-semibold transition-colors ${
+              estEntreprise === "non"
+                ? "border-fuchsia bg-fuchsia text-white"
+                : "border-slate-300 bg-white text-navy hover:border-navy/40 hover:bg-slate-50"
+            }`}
+          >
+            Non, à titre individuel
+          </button>
         </div>
-        {touched.type_inscription && errors.type_inscription && (
+        {showTypeError && estEntreprise === "" && (
           <p className="mt-1.5 text-sm font-medium text-rose-600" role="alert">
-            {errors.type_inscription}
+            Merci d&apos;indiquer si vous représentez une entreprise.
           </p>
         )}
       </div>
+
+      {estEntreprise === "oui" && (
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-navy">
+            Type d&apos;inscription <span className="text-fuchsia">*</span>
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {TYPE_INSCRIPTION_OPTIONS.map((option) => (
+              <TypeCard
+                key={option.value}
+                value={option.value}
+                label={option.label}
+                icon={option.icon}
+                selected={values.type_inscription === option.value}
+                onSelect={handleTypeSelect}
+              />
+            ))}
+          </div>
+          {showTypeError && (
+            <p className="mt-1.5 text-sm font-medium text-rose-600" role="alert">
+              {errors.type_inscription}
+            </p>
+          )}
+          {values.type_inscription === "exposant" && (
+            <p className="mt-2 text-xs text-slate-500">{EXPOSANT_QUALIFICATION_NOTE}</p>
+          )}
+        </div>
+      )}
+
+      {estEntreprise === "non" && (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-navy">
+          Vous serez inscrit(e) en tant que <strong>Visiteur</strong>.
+        </p>
+      )}
+
+      {estEntreprise === "oui" && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <FormField
+            label="Entreprise / Organisation"
+            name="entreprise"
+            value={values.entreprise}
+            placeholder="Ex : SecuriGroup SA"
+            autoComplete="organization"
+            required={values.type_inscription !== "visiteur"}
+            error={touched.entreprise ? errors.entreprise : undefined}
+            onChange={(v) => updateField("entreprise", v)}
+            onBlur={() => handleBlurField("entreprise")}
+          />
+          {values.type_inscription === "exposant" && (
+            <FormField
+              label="Poste / Fonction"
+              name="poste"
+              value={values.poste}
+              options={POSTE_OPTIONS}
+              error={touched.poste ? errors.poste : undefined}
+              onChange={(v) => updateField("poste", v)}
+              onBlur={() => handleBlurField("poste")}
+            />
+          )}
+          {values.type_inscription === "partenaire_officiel" && (
+            <FormField
+              label="Poste / Fonction"
+              name="poste"
+              value={values.poste}
+              placeholder="Ex : Directrice commerciale"
+              autoComplete="organization-title"
+              error={touched.poste ? errors.poste : undefined}
+              onChange={(v) => updateField("poste", v)}
+              onBlur={() => handleBlurField("poste")}
+            />
+          )}
+          {values.type_inscription === "visiteur" && (
+            <FormField
+              label="Poste / Fonction"
+              name="poste"
+              value={values.poste}
+              placeholder="Ex : Directrice commerciale"
+              autoComplete="organization-title"
+              required={false}
+              onChange={(v) => updateField("poste", v)}
+            />
+          )}
+        </div>
+      )}
+
+      {values.type_inscription === "exposant" && values.poste === NON_QUALIFYING_ROLE && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Le stand Exposant est réservé aux personnes habilitées à engager l&apos;entreprise (Direction
+          générale ou commerciale). Si ce n&apos;est pas votre cas, nous vous invitons à vous inscrire en
+          tant que Visiteur.
+          <button
+            type="button"
+            onClick={() => handleTypeSelect("visiteur")}
+            className="mt-2 block font-semibold text-fuchsia hover:underline"
+          >
+            Continuer en tant que Visiteur →
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField
@@ -137,27 +278,7 @@ export function RegistrationForm() {
           autoComplete="name"
           error={touched.nom_complet ? errors.nom_complet : undefined}
           onChange={(v) => updateField("nom_complet", v)}
-          onBlur={() => handleBlur("nom_complet")}
-        />
-        <FormField
-          label="Entreprise / Organisation"
-          name="entreprise"
-          value={values.entreprise}
-          placeholder="Ex : SecuriGroup SA"
-          autoComplete="organization"
-          error={touched.entreprise ? errors.entreprise : undefined}
-          onChange={(v) => updateField("entreprise", v)}
-          onBlur={() => handleBlur("entreprise")}
-        />
-        <FormField
-          label="Poste / Fonction"
-          name="poste"
-          value={values.poste}
-          placeholder="Ex : Directrice commerciale"
-          autoComplete="organization-title"
-          error={touched.poste ? errors.poste : undefined}
-          onChange={(v) => updateField("poste", v)}
-          onBlur={() => handleBlur("poste")}
+          onBlur={() => handleBlurField("nom_complet")}
         />
         <FormField
           label="Téléphone"
@@ -168,7 +289,7 @@ export function RegistrationForm() {
           autoComplete="tel"
           error={touched.telephone ? errors.telephone : undefined}
           onChange={(v) => updateField("telephone", v)}
-          onBlur={() => handleBlur("telephone")}
+          onBlur={() => handleBlurField("telephone")}
         />
         <div className="sm:col-span-2">
           <FormField
@@ -180,7 +301,7 @@ export function RegistrationForm() {
             autoComplete="email"
             error={touched.email ? errors.email : undefined}
             onChange={(v) => updateField("email", v)}
-            onBlur={() => handleBlur("email")}
+            onBlur={() => handleBlurField("email")}
           />
         </div>
       </div>
