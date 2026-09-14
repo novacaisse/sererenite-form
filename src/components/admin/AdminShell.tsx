@@ -9,7 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 const NAV_ITEMS = [
   {
     href: "/admin",
-    label: "Tableau de bord",
+    label: "Accueil",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
         <rect x="3" y="3" width="7" height="9" rx="1.5" />
@@ -27,6 +27,19 @@ const NAV_ITEMS = [
         <circle cx="9" cy="8" r="3.5" />
         <path strokeLinecap="round" d="M2.5 20a6.5 6.5 0 0 1 13 0" />
         <path strokeLinecap="round" d="M16.5 5.5a3.5 3.5 0 0 1 0 7M21.5 20a6 6 0 0 0-5-6" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/visiteurs",
+    label: "Visiteurs",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.5a1.5 1.5 0 0 0 0 3V15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1.5a1.5 1.5 0 0 0 0-3V9ZM10 6v12"
+        />
       </svg>
     ),
   },
@@ -102,7 +115,7 @@ export function AdminShell({ email, children }: { email: string; children: React
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium ${
+                className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
                   active ? "text-fuchsia" : "text-app-text-muted"
                 }`}
               >
@@ -113,7 +126,7 @@ export function AdminShell({ email, children }: { email: string; children: React
           })}
           <button
             onClick={() => setMenuOpen(true)}
-            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-app-text-muted"
+            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-app-text-muted"
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
               <circle cx="5" cy="12" r="1.5" />

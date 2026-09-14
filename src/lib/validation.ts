@@ -27,11 +27,16 @@ export function validateLeadForm(values: LeadFormValues): FormErrors {
     errors.nom_complet = "Le nom complet doit contenir au moins 3 caractères.";
   }
 
-  if (values.entreprise.trim().length < 2) {
+  // Entreprise/Poste are only mandatory for company-linked registrations —
+  // an individual Visiteur may have neither.
+  const requiresCompanyDetails =
+    values.type_inscription === "exposant" || values.type_inscription === "partenaire_officiel";
+
+  if (requiresCompanyDetails && values.entreprise.trim().length < 2) {
     errors.entreprise = "L'entreprise / organisation doit contenir au moins 2 caractères.";
   }
 
-  if (!values.poste.trim()) {
+  if (requiresCompanyDetails && !values.poste.trim()) {
     errors.poste = "Merci d'indiquer votre poste ou fonction.";
   }
 

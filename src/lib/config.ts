@@ -22,6 +22,31 @@ export const PARTNERSHIP_DECK_LINK =
 
 export const META_PIXEL_ID = "2452145495266477";
 
+/**
+ * Roles considered able to actually commit a company to reserving a stand.
+ * Used to qualify Exposant registrations at the point of sign-up: anyone who
+ * isn't one of these is nudged (not blocked) toward registering as Visiteur
+ * instead, since experience showed the free-text "Poste" field let through
+ * plenty of people who could never approve a stand booking during the sales
+ * follow-up calls.
+ */
+export const QUALIFYING_ROLES = [
+  "Directeur Général / PDG",
+  "Directeur Commercial",
+  "Gérant / Fondateur",
+  "Directeur Général Adjoint",
+];
+
+/** Sentinel "Poste" value meaning "none of the qualifying roles above". */
+export const NON_QUALIFYING_ROLE = "Autre poste";
+
+export function isQualifyingRole(poste: string | null | undefined): boolean {
+  return Boolean(poste && QUALIFYING_ROLES.includes(poste));
+}
+
+export const EXPOSANT_QUALIFICATION_NOTE =
+  "Réservé aux personnes habilitées à engager l'entreprise pour réserver un stand (Direction générale ou commerciale).";
+
 export const TYPE_INSCRIPTION_OPTIONS: {
   value: TypeInscription;
   label: string;
